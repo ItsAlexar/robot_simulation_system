@@ -8,21 +8,29 @@ Simulator - main program
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "project1.h" // header with all data structures
-
+#include "project1.h" 
 //----------------------------------------------------------General
 // WARNING: do not change this function
 enum EventType GenerateEventType()
 {
 	return rand()%3;
 }
-
-void CheckArguments (int argc, char ** argv)
+/* Checks that exactly one positive integer argument is passed.
+   If not, prints usage and exits. */
+void CheckArguments (int argc, char **argv)
 {
-	// check the input introduced by the user
+	if (argc != 2) {
+		printf("Error: Incorrect number of arguments.\n");
+		printf("Usage: %s <number_of_events>\n", argv[0]);
+		exit(1);
+	}
+	int EventNumbers = atoi(argv[1]);
+	if (EventNumbers <= 0) {
+		printf("Error: number of events must be a positive integer.\n");
+		printf("Usage: %s <number_of_events>\n", argv[0]);
+		exit(1);
+	}
 }
-
 //----------------------------------------------------------RobotPackages -> Sorted list
 // WARNING: do not change this function
 struct RobotPackage * GenerateRobotPackage()
@@ -190,8 +198,8 @@ int main (int argc, char ** argv)
 	printf ("Starting... \n");
 	CheckArguments(argc, argv);
 	
-	// initialize EventNumbers 
-
+	EventNumbers = atoi(argv[1]);
+	printf("%d",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
 	SimulationLoop(EventNumbers);
 	return 0;
 }
