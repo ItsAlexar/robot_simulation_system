@@ -45,9 +45,14 @@ struct RobotPackage * GenerateRobotPackage()
 }
 
 // function to print a list of RobotPackages
-void PrintRobotPackages()
+void PrintRobotPackages(struct RobotPackage *item)
 {
-
+	int index=0;
+	while (item != NULL) {
+		index+=1;
+		printf("Package (%d): %c,%c,%d\n", index,item->supplier, item->id, item->year);
+		item = item->next;
+	}
 }
 
 /* it searches for a RobotPackage by supplier name.
@@ -230,7 +235,10 @@ int main (int argc, char ** argv)
 	EventNumbers = atoi(argv[1]);
 
 	printf("%d",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
-	
 	SimulationLoop(EventNumbers);
+
+	struct RobotPackage* list=GenerateRobotPackage();
+	PrintRobotPackages(list);
+	
 	return 0;
 }
