@@ -51,7 +51,7 @@ void PrintRobotPackages(struct RobotPackage *item)
 	//struct RobotPackage *item = RobotPackagesHead;
 	while (item != NULL) {
 		index+=1;
-		printf("Package (%d): %c,%c,%d\n", index,item->supplier, item->id, item->year);
+		printf("Package (%d): %s,%s,%d\n", index,item->supplier, item->id, item->year);
 		item = item->next;
 	}
 }
@@ -122,7 +122,12 @@ struct Package * GeneratePackage()
 // function to initialize all stacks of Packages 
 void InitStacks()
 {
-
+	int i;
+	for (i = 0; i < NUMBER_OF_STACK; i++) {
+		Top_ofPackageStacks[i] = NULL;
+		CurrentState[i] = 0;
+	}
+	return;
 }
 
 // function to print all stacks with all Packages
@@ -229,8 +234,6 @@ void SimulationLoop(int EventNumbers)
 
 int main (int argc, char ** argv)
 {
-	struct RobotPackage* list=GenerateRobotPackage();
-	PrintRobotPackages(list);
 	
 	int EventNumbers;
 	printf ("Starting... \n");
@@ -243,6 +246,8 @@ int main (int argc, char ** argv)
 
 	struct RobotPackage* list=GenerateRobotPackage();
 	PrintRobotPackages(list);
+
+	CleanPackageStacks();
 	
 	return 0;
 }
