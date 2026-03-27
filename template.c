@@ -44,14 +44,14 @@ struct RobotPackage * GenerateRobotPackage()
 	return RobotPackage;
 }
 
-// function to print a list of RobotPackages
-void PrintRobotPackages(struct RobotPackage *item)
+/* It prints all RobotPackages in the sorted list */
+void PrintRobotPackages()
 {
+	struct RobotPackage *item = RobotPackagesHead;
 	int index=0;
-	//struct RobotPackage *item = RobotPackagesHead;
 	while (item != NULL) {
 		index+=1;
-		printf("Package (%d): %s,%s,%d\n", index,item->supplier, item->id, item->year);
+		printf("Package (%d):\nSupplier: %s, dd: %s,year: %d\n", index,item->supplier, item->id, item->year);
 		item = item->next;
 	}
 }
