@@ -39,8 +39,15 @@ struct RobotPackage * GenerateRobotPackage()
 }
 
 // function to print a list of RobotPackages
-void PrintRobotPackages()
+void PrintRobotPackages(struct RobotPackage *item)
 {
+	int index=0;
+	//struct RobotPackage *item = RobotPackagesHead;
+	while (item != NULL) {
+		index+=1;
+		printf("Package (%d): %c,%c,%d\n", index,item->supplier, item->id, item->year);
+		item = item->next;
+	}
 	
 }
 
@@ -186,6 +193,9 @@ void SimulationLoop(int EventNumbers)
 
 int main (int argc, char ** argv)
 {
+	struct RobotPackage* list=GenerateRobotPackage();
+	PrintRobotPackages(list);
+	
 	int EventNumbers;
 	printf ("Starting... \n");
 	CheckArguments(argc, argv);
