@@ -8,29 +8,35 @@ Simulator - main program
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "project1.h" // header with all data structures
-
+#include "project1.h" 
 //----------------------------------------------------------General
 // WARNING: do not change this function
 enum EventType GenerateEventType()
 {
 	return rand()%3;
 }
-
-void CheckArguments (int argc, char ** argv)
+/* Checks that one positive integer argument is passed.
+   If not, it prints an usage and exits the program. */
+void CheckArguments (int argc, char **argv)
 {
-	// check the input introduced by the user
+	if (argc != 2) {
+		printf("Error: Incorrect number of arguments.\n");
+		printf("Usage: %s <number_of_events>\n", argv[0]);
+		exit(1);
+	}
+	int EventNumbers = atoi(argv[1]);
+	if (EventNumbers <= 0) {
+		printf("Error: number of events must be a positive integer.\n");
+		printf("Usage: %s <number_of_events>\n", argv[0]);
+		exit(1);
+	}
 }
-
 //----------------------------------------------------------RobotPackages -> Sorted list
 // WARNING: do not change this function
 struct RobotPackage * GenerateRobotPackage()
 {
-	// reserve memory for a RobotPackage
 	struct RobotPackage * RobotPackage=malloc(sizeof(struct RobotPackage));
 	int RobotPackageNum=rand()%8;
-	// initialize the RobotPackage's fields
 	strcpy (RobotPackage->supplier, suppliers[RobotPackageNum]);
 	strcpy (RobotPackage->id, ids[RobotPackageNum]);
 	int year=rand()%40+1980;
@@ -48,25 +54,55 @@ void PrintRobotPackages(struct RobotPackage *item)
 		printf("Package (%d): %c,%c,%d\n", index,item->supplier, item->id, item->year);
 		item = item->next;
 	}
-	
 }
 
-// function to search for a RobotPackage
-struct RobotPackage * SearchRobotPackage(/*...*/)
+/* it searches for a RobotPackage by supplier name.
+   Returns the pointer if found, NULL otherwise. */
+struct RobotPackage * SearchRobotPackage(char *supplier)
 {
-
+	struct RobotPackage *current = RobotPackagesHead;
+	while (current != NULL) {
+		if (strcmp(current->supplier, supplier) == 0) /*This function return 0 if the words are the same*/
+			return current;
+		current = current->next;
+	}
+	return NULL; 
 }
 
-// function to simulate an insertion of RobotPackages in a ordered way (sorted by supplier)
-void SimulateManagingRobotPackages(struct RobotPackage * RobotPackage)
+/* It inserts a RobotPackage into the sorted list (sorted alphabetically by supplier). */
+void SimulateManagingRobotPackages(struct RobotPackage * NewRobotPackage)
 {
-
+	/*When the list is empty, or the new element has to be BEFORE the first one*/
+    if (RobotPackagesHead == NULL || strcmp(NewRobotPackage->supplier, RobotPackagesHead->supplier) <= 0) {
+        NewRobotPackage->next = RobotPackagesHead;
+        RobotPackagesHead = NewRobotPackage;
+    } 
+    else {
+        /* When we need to find the position in the middle or at the end*/
+        struct RobotPackage *current = RobotPackagesHead;
+        while (current->next != NULL && strcmp(current->next->supplier, NewRobotPackage->supplier) <= 0) {
+            current = current->next;
+        }
+        NewRobotPackage->next = current->next; /*Poiting "next" the package that goes after the new one */
+        current->next = NewRobotPackage; /*Inserting correctly the new package in the sorted list*/
+    }
+    printf("The new package has been added: supplier=%s | id=%s | year=%d\n", 
+            NewRobotPackage->supplier, NewRobotPackage->id, NewRobotPackage->year);
 }
 
-// function to remove all the RobotPackages from the list at the end of the program
+/* It frees all RobotPackages from the list and prints how many were removed.*/
 void RemoveAllRobotPackages()
 {
-
+	int count = 0;
+	struct RobotPackage *current = RobotPackagesHead;
+	while (current != NULL){
+		struct RobotPackage *temporal = current->next;
+		free(current);
+		current = temporal;
+		count++;
+	}
+	RobotPackagesHead = NULL;
+	printf("%d packages has been removed from the stock\n", count);
 }
 
 //----------------------------------------------------------Packages -> different Stacks
@@ -200,8 +236,13 @@ int main (int argc, char ** argv)
 	printf ("Starting... \n");
 	CheckArguments(argc, argv);
 	
-	// initialize EventNumbers 
+	EventNumbers = atoi(argv[1]);
 
+	printf("%d",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
 	SimulationLoop(EventNumbers);
+
+	struct RobotPackage* list=GenerateRobotPackage();
+	PrintRobotPackages(list);
+	
 	return 0;
 }
