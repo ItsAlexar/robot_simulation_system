@@ -51,8 +51,7 @@ void PrintRobotPackages(struct RobotPackage *item)
 	//struct RobotPackage *item = RobotPackagesHead;
 	while (item != NULL) {
 		index+=1;
-		printf("Package (%d): %s,%s,%d\n", index,item->supplier, item->id, item->year);
-		item = item->next;
+		printf("Package (%d):\nSupplier: %s, dd: %s, year: %d\n", index,item->supplier, item->id, item->year);		item = item->next;
 	}
 }
 
@@ -133,13 +132,22 @@ void InitStacks()
 // function to print all stacks with all Packages
 void PrintPackages()
 {
-
+	int i;
+	int o = 0;
+	for (i = 0; i < NUMBER_OF_STACK; i++) {
+		if (Top_ofPackageStacks[i] != NULL){
+			o += 1;
+			printf("STACK %d\n", i);
+			struct Package * current = Top_ofPackageStacks[i];
+			printf("Package (%d):\nType ID: %d, Color ID: %d\n", o, current->type, current->color);
+			}
+	}
+	return;
 }
 
 // function to remove all packages from a given stack when its MAX_CAPACITY is reached
-void RemoveStack(/*...*/)
-{
-
+void RemoveStack(slack_p) {
+	
 }
 
 // function to simulate putting a generated Package to a corresponding stack depending on the type (size)
@@ -240,13 +248,16 @@ int main (int argc, char ** argv)
 	CheckArguments(argc, argv);
 	
 	EventNumbers = atoi(argv[1]);
+	
 
-	printf("%d",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
+
+	printf("%d\n",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
 	SimulationLoop(EventNumbers);
 
 	struct RobotPackage* list=GenerateRobotPackage();
 	PrintRobotPackages(list);
 
+	PrintPackages();
 	CleanPackageStacks();
 	
 	return 0;
