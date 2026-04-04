@@ -134,27 +134,49 @@ void InitStacks()
 void PrintPackages()
 {
 	int i;
-	int o = 0;
-	for (i = 0; i < NUMBER_OF_STACK; i++) {
-		if (Top_ofPackageStacks[i] != NULL){
-			o += 1;
-			printf("STACK %d\n", i);
+	int counter = 0; // general numeration for all packages printed
+
+	for (i = 0; i < NUMBER_OF_STACK; i++) 
+	{
+		if (Top_ofPackageStacks[i] != NULL)	{
 			struct Package * current = Top_ofPackageStacks[i];
-			printf("Package (%d):\nType ID: %d, Color ID: %d\n", o, current->type, current->color);
+
+			printf("STACK %d\n", i+1);
+			while (current != NULL)	{
+				counter++;
+				printf("Package (%d) - Type [size]: %d, Color ID: %d\n", counter, current->type, current->color);
+				current = current->next;
 			}
+		
+		} else if (i == NUMBER_OF_STACK - 1 && counter == 0){
+			printf("There is no stack to print.\n");
+		}
 	}
 	return;
 }
 
 // function to remove all packages from a given stack when its MAX_CAPACITY is reached
-void RemoveStack(slack_p) {
+void RemoveStack(struct Package **slack_p) {
+	if (*slack_p != NULL) {
+
+		struct Package * tmp;
+
+		while ((*slack_p)->next != NULL) {
+			tmp = *slack_p;
+			*slack_p = (*slack_p)->next;
+			free(tmp);
+		}
+		free(*slack_p);
+		*slack_p = NULL;
+	}
 	
 }
 
 // function to simulate putting a generated Package to a corresponding stack depending on the type (size)
 void SimulateClassifyPackage(struct Package * Package)
 {
-
+	Package->next = Top_ofPackageStacks[Package->type]; // in case any package is in the stack, it will be NULL
+	Top_ofPackageStacks[Package->type] = Package;
 }
 
 // function to clean all stacks before the end of the program
@@ -253,12 +275,26 @@ int main (int argc, char ** argv)
 
 
 	printf("%d\n",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
-	SimulationLoop(EventNumbers);
+	//SimulationLoop(EventNumbers);
 
 	struct RobotPackage* list=GenerateRobotPackage();
-	PrintRobotPackages(list);
+	
+	PrintRobotPackages();
 
+	InitStacks();
+	SimulateClassifyPackage(GeneratePackage());
+	SimulateClassifyPackage(GeneratePackage());
+	SimulateClassifyPackage(GeneratePackage());
+	SimulateClassifyPackage(GeneratePackage());
+	SimulateClassifyPackage(GeneratePackage());
+	SimulateClassifyPackage(GeneratePackage());
+	//Top_ofPackageStacks[0]=GeneratePackage();
+	//Top_ofPackageStacks[1]=GeneratePackage();
+	struct Package ** p_stack = &Top_ofPackageStacks[0];
 	PrintPackages();
+	RemoveStack(p_stack);
+	PrintPackages();
+
 	CleanPackageStacks();
 	
 	return 0;
