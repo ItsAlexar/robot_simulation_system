@@ -141,7 +141,7 @@ void PrintPackages()
 		if (Top_ofPackageStacks[i] != NULL)	{
 			struct Package * current = Top_ofPackageStacks[i];
 
-			printf("STACK %d\n", i+1);
+			printf("======\nSTACK %d ~ %d units\n", i+1, CurrentState[i]);
 			while (current != NULL)	{
 				counter++;
 				printf("Package (%d) - Type [size]: %d, Color ID: %d\n", counter, current->type, current->color);
@@ -157,32 +157,36 @@ void PrintPackages()
 
 // function to remove all packages from a given stack when its MAX_CAPACITY is reached
 void RemoveStack(struct Package **slack_p) {
-	if (*slack_p != NULL) {
+	struct Package * tmp;
 
-		struct Package * tmp;
+	while (*slack_p != NULL) {
 
-		while ((*slack_p)->next != NULL) {
-			tmp = *slack_p;
-			*slack_p = (*slack_p)->next;
-			free(tmp);
-		}
-		free(*slack_p);
-		*slack_p = NULL;
-	}
-	
+		//CurrentState[(*slack_p)->type] = 0; // What is better, leave it there for being easier and faster or saving the index and apply at the end for reability?
+		
+		tmp = *slack_p;
+		*slack_p = (*slack_p)->next;
+		free(tmp);
+
+	}	
 }
 
 // function to simulate putting a generated Package to a corresponding stack depending on the type (size)
 void SimulateClassifyPackage(struct Package * Package)
 {
-	Package->next = Top_ofPackageStacks[Package->type]; // in case any package is in the stack, it will be NULL
+	Package->next = Top_ofPackageStacks[Package->type]; // in case no package is in the stack, it will be NULL
 	Top_ofPackageStacks[Package->type] = Package;
+	CurrentState[Package->type]++;
 }
 
 // function to clean all stacks before the end of the program
 void CleanPackageStacks()
 {
+	for (int i = 0; i < NUMBER_OF_STACK; i++){
+		struct Package ** ptp = &Top_ofPackageStacks[i];
+		RemoveStack(ptp);
+		CurrentState[i] = 0;   // We should do this when MAX_CAPACITY is achieved and RemoveStack is going to be executed
 
+	}
 }
 
 //----------------------------------------------------------Shopping -> Queue
@@ -290,7 +294,7 @@ int main (int argc, char ** argv)
 	SimulateClassifyPackage(GeneratePackage());
 	//Top_ofPackageStacks[0]=GeneratePackage();
 	//Top_ofPackageStacks[1]=GeneratePackage();
-	struct Package ** p_stack = &Top_ofPackageStacks[0];
+	struct Package ** p_stack = &Top_ofPackageStacks[1];
 	PrintPackages();
 	RemoveStack(p_stack);
 	PrintPackages();
