@@ -11,12 +11,12 @@ Simulator - main program
 #include "project1.h" 
 
 int shopping_time = 0;
-//----------------------------------------------------------General
-// WARNING: do not change this function
+
 enum EventType GenerateEventType()
 {
 	return rand()%3;
 }
+
 /* Checks that one positive integer argument is passed.
    If not, it prints an usage and exits the program. */
 void CheckArguments (int argc, char **argv)
@@ -33,8 +33,7 @@ void CheckArguments (int argc, char **argv)
 		exit(1);
 	}
 }
-//----------------------------------------------------------RobotPackages -> Sorted list
-// WARNING: do not change this function
+
 struct RobotPackage * GenerateRobotPackage()
 {
 	struct RobotPackage * RobotPackage=malloc(sizeof(struct RobotPackage));
@@ -109,13 +108,9 @@ void RemoveAllRobotPackages()
 	printf("	%d packages have been removed.\n", count);
 }
 
-//----------------------------------------------------------Packages -> different Stacks
-// WARNING: do not change this function
 struct Package * GeneratePackage()
 {
-	// reserve memory for a Package
 	struct Package * Package=malloc(sizeof(struct Package));
-	// initialize the Package's fields
 	enum PackageType type=rand()%3;
 	enum Colors color=rand()%4;
 	Package->type = type;
@@ -123,43 +118,40 @@ struct Package * GeneratePackage()
 	return Package;
 }
 
-// function to initialize all stacks of Packages 
+/* It sets all stack tops to NULL and counters to 0 */
 void InitStacks()
 {
-	int i;
-	for (i = 0; i < NUMBER_OF_STACK; i++) {
+	for (int i = 0; i < NUMBER_OF_STACK; i++) {
 		Top_ofPackageStacks[i] = NULL;
 		CurrentState[i] = 0;
 	}
-	return;
 }
 
-// function to print all stacks with all Packages
+/* It prints all packages in all stacks */
 void PrintPackages()
 {
-	int i;
-	int counter = 0; // general numeration for all packages printed
-
-	for (i = 0; i < NUMBER_OF_STACK; i++) 
+	char *type_names[]  = {"small", "medium", "large"};
+	char *color_names[] = {"white", "green", "yellow", "beige"};
+	int counter = 0;  // general numeration for all packages printed
+	
+	for (int i = 0; i < NUMBER_OF_STACK; i++) 
 	{
 		if (Top_ofPackageStacks[i] != NULL)	{
-			struct Package * current = Top_ofPackageStacks[i];
+			struct Package *current = Top_ofPackageStacks[i];
 
-			printf("======\nSTACK %d ~ %d units\n", i+1, CurrentState[i]);
-			while (current != NULL)	{
+			printf("======\n%s STACK ~ %d units\n", type_names[i], CurrentState[i]);
+			while (current != NULL) {
 				counter++;
-				printf("Package (%d) - Type [size]: %d, Color ID: %d\n", counter, current->type, current->color);
+				printf("Package (%d) - Color: %s\n", counter, color_names[current->color]);
 				current = current->next;
 			}
-		
 		} else if (i == NUMBER_OF_STACK - 1 && counter == 0){
 			printf("There is no stack to print.\n");
 		}
 	}
-	return;
 }
 
-// function to remove all packages from a given stack when its MAX_CAPACITY is reached
+/* It removes (frees) all packages from a given stack and resets its counter. */
 void RemoveStack(struct Package **slack_p) {
 	struct Package * tmp;
 	
@@ -173,19 +165,29 @@ void RemoveStack(struct Package **slack_p) {
 	}	
 }
 
-// function to simulate putting a generated Package to a corresponding stack depending on the type (size)
+/* It pushes a Package onto its corresponding stack.
+   If the stack is full, first removes all packages, then pushes the new one. */
 void SimulateClassifyPackage(struct Package * Package)
 {
-	Package->next = Top_ofPackageStacks[Package->type]; // in case no package is in the stack, it will be NULL
-	Top_ofPackageStacks[Package->type] = Package;
-	CurrentState[Package->type]++;
+	int index = Package->type;
+
+	/* If stack is at max capacity, it removes all packages */
+	if (CurrentState[index] >= MAX_CAPACITY) {
+		struct Package ** Stack = &Top_ofPackageStacks[index];
+		RemoveStack(Stack);
+	}
+
+	Package->next = Top_ofPackageStacks[index]; // in case no package is in the stack, it will be NULL
+	Top_ofPackageStacks[index] = Package;
+	CurrentState[index]++;
 }
 
-// function to clean all stacks before the end of the program
+
+/* It frees all remaining packages from every stack and prints the total removed. */
 void CleanPackageStacks()
 {
 	int i = 0;
-	printf("Cleaning stacks of packages...\n");
+	printf("Cleaning all stacks of packages...\n");
 	for (i; i < NUMBER_OF_STACK; i++){
 		struct Package ** ptp = &Top_ofPackageStacks[i];
 		RemoveStack(ptp);
@@ -195,8 +197,6 @@ void CleanPackageStacks()
 	printf("	%d packages have been removed.\n", i);
 }
 
-//----------------------------------------------------------Shopping -> Queue
-// WARNING: do not change this function
 struct Shopping * GenerateShopping()
 {
 	// reserve memory for a Shopping
