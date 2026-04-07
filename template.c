@@ -10,13 +10,10 @@ Simulator - main program
 #include <stdlib.h>
 #include "project1.h" 
 
-int shopping_time = 0;
-
 enum EventType GenerateEventType()
 {
 	return rand()%3;
 }
-
 /* Checks that one positive integer argument is passed.
    If not, it prints an usage and exits the program. */
 void CheckArguments (int argc, char **argv)
@@ -105,7 +102,7 @@ void RemoveAllRobotPackages()
 		count++;
 	}
 	RobotPackagesHead = NULL;
-	printf("	%d packages have been removed.\n", count);
+	printf("	%d packages has been removed.\n", count);
 }
 
 struct Package * GeneratePackage()
@@ -151,16 +148,15 @@ void PrintPackages()
 	}
 }
 
-/* It removes (frees) all packages from a given stack and resets its counter. */
-void RemoveStack(struct Package **slack_p) {
+/* It removes (frees) all packages from a given stack and resets its counter */
+void RemoveStack(struct Package **stack_p) 
+{
 	struct Package * tmp;
-	
-	//CurrentState[(*slack_p)->type] = 0; // What is better, leave it there for being easier and faster or saving the index and apply at the end for reability?
 
-	while (*slack_p != NULL) {
+	while (*stack_p != NULL) {
 
-		tmp = *slack_p;
-		*slack_p = (*slack_p)->next;
+		tmp = *stack_p;
+		*stack_p = (*stack_p)->next;
 		free(tmp);
 	}	
 }
@@ -182,19 +178,23 @@ void SimulateClassifyPackage(struct Package * Package)
 	CurrentState[index]++;
 }
 
-
 /* It frees all remaining packages from every stack and prints the total removed. */
 void CleanPackageStacks()
 {
-	int i = 0;
+	int total = 0;
 	printf("Cleaning all stacks of packages...\n");
-	for (i; i < NUMBER_OF_STACK; i++){
+	for (int i = 0; i < NUMBER_OF_STACK; i++) {
 		struct Package ** ptp = &Top_ofPackageStacks[i];
-		RemoveStack(ptp);
+		struct Package * tmp;
+		while (*ptp != NULL) {
+			tmp = *ptp;
+			*ptp = (*ptp)->next;
+			free(tmp);
+			total++;
+		}	
 		CurrentState[i] = 0;   // We should do this when MAX_CAPACITY is achieved and RemoveStack is going to be executed
-
 	}
-	printf("	%d packages have been removed.\n", i);
+	printf("	%d packages have been removed.\n", total);
 }
 
 struct Shopping * GenerateShopping()
@@ -209,9 +209,9 @@ struct Shopping * GenerateShopping()
 	return shopping;
 }
 
-// function to print a list of robots in a shopping queue
+/* It prints all robots currently in the shopping queue */
 void PrintShopping()
-{	
+{
 	struct Shopping * current = queueFirst;
 	int counter = 1;
 	printf("== Shopping Queue ==\n");
@@ -222,7 +222,7 @@ void PrintShopping()
 	}
 }
 
-// function to add a robot to a shopping queue
+/* It adds a robot to the end of the shopping queue */
 void AddToQueue(struct Shopping * shopping)
 {
 	if (queueFirst == NULL) {
@@ -234,20 +234,19 @@ void AddToQueue(struct Shopping * shopping)
 	queueLast = shopping;
 }
 
-// function to remove a robot from the queue and serve it
-// it may return the number of things to buy to simulate the time
+/* It removes the first robot from the queue, frees it, and returns its numberThingsToBuy.
+   Returns -1 if the queue is empty. */
 int Dequeue ()
 {
-	if (queueFirst == NULL) {
+	if (queueFirst == NULL)
 		return -1;
-	}
+
 	struct Shopping * tmp = queueFirst;
 	int buy_counter = tmp->numberThingsToBuy;
 
 	queueFirst = tmp->next;
-	if (queueFirst == NULL){
+	if (queueFirst == NULL)
 		queueLast = NULL;
-	}
 
 	free(tmp);
 	return buy_counter;
@@ -255,33 +254,34 @@ int Dequeue ()
 }
 
 // function to simulate the time the robot is in the queue
-void UpdateShoppingQueue (/*...*/)
+void UpdateShoppingQueue (int *shopping_time)
 {
-	if (shopping_time == 0) {
+	if (*shopping_time == 0) {
 		int current_time = Dequeue();
 
 		if (current_time != -1){
-			shopping_time = current_time;
+			*shopping_time = current_time;
 			printf("A robot just START shopping.\n");
 		} 
 	} 
-	if (shopping_time > 0) {
-		shopping_time--;
-		if (shopping_time == 0) {
+	else if (*shopping_time > 0) {
+		(*shopping_time)--;
+		if (*shopping_time == 0) {
 			printf("A robot have FINISHED shopping.\n");
 		}
 	}
 }
 
-// function to simulate a robot going for shopping - add to the queue
+/* Adds a new robot to the queue.
+   If no robot is currently being served, starts serving immediately. */
 void SimulateGoForShopping(struct Shopping * shopping)
 {
 	AddToQueue(shopping);
 	printf("Robot %d have been added to the queue.\n",shopping->robot_id);
 }
 
-// function to clean shopping queue before the end of the program
-void CleanShoppingQueue(/*...*/)
+/* It frees all robots still in the queuea and prints how many were removed */
+void CleanShoppingQueue()
 {
 	struct Shopping * tmp;
 	int counter = 0;
@@ -295,34 +295,42 @@ void CleanShoppingQueue(/*...*/)
 	}
 	queueLast = NULL;
 	printf("	%d robots have been removed.\n", counter);
-
 }
 
-//----------------------------------------------------------main
-// This is the main loop of the program. 
-// It generates and consumes events.
+/* Main simulation loop: generates and consumes EventNumbers events. */
 void SimulationLoop(int EventNumbers)
 {
-	// declare and initialize necessary variables
+	int shopping_time = 0; // items remaining for the robot currently being served. 0 means no robot is shopping right now. */
 
 	InitStacks();
 	
 	for (int i=0; i<EventNumbers; i++)    
 	{
-		// generate event type
-		// depending on the generated event type:
-		// event type 0: 
-			// generate RobotPackage 
-			// Simulate managing RobotPackages (sorting)
-		// event type 1:
-			// generate Package
-			// Simulate classifying Packages (putting to a corresponding stack)
-		// event type 2:
-			// generate shopping
-			// Simulate go for shopping 
-		// UpdateShopping
+		enum EventType event = GenerateEventType();	
+		if (event == 0) {
+			/* Event 0: sort a RobotPackage */
+			struct RobotPackage *Rpack = GenerateRobotPackage();
+			SimulateManagingRobotPackages(Rpack);
+		}	
+		else if(event ==1) {
+			/* Event 1: classify a Package into its stack*/
+			struct Package *Package = GeneratePackage();
+			SimulateClassifyPackage(Package);
+
+		}
+		else if (event == 2){
+			/* Event 2: new robot joins the shopping queue */
+			struct Shopping *shopping = GenerateShopping();
+			SimulateGoForShopping(shopping);
+		}
+		/* One time unit passes per event consumed */
+		UpdateShoppingQueue(&shopping_time);
 	}
 	// CLEANING THE SIMULATION
+	printf("\nSTATISTICS WHEN CLEANING THE SIMULATION:\n");
+	RemoveAllRobotPackages();
+	CleanPackageStacks();
+	CleanShoppingQueue();
 }
 
 int main (int argc, char ** argv)
@@ -332,47 +340,7 @@ int main (int argc, char ** argv)
 	CheckArguments(argc, argv);
 	
 	EventNumbers = atoi(argv[1]);
-	
-
-
-	printf("%d\n",EventNumbers); /*Jiarui: esto es para comprobar si despues de hacer CheckArguments el programa hace esto o no segun los argumentos pasados en el compiler*/
-	//SimulationLoop(EventNumbers);
-
-	struct RobotPackage* list=GenerateRobotPackage();
-	
-	PrintRobotPackages();
-
-	InitStacks();
-	SimulateClassifyPackage(GeneratePackage());
-	SimulateClassifyPackage(GeneratePackage());
-	SimulateClassifyPackage(GeneratePackage());
-	SimulateClassifyPackage(GeneratePackage());
-	SimulateClassifyPackage(GeneratePackage());
-	//Top_ofPackageStacks[0]=GeneratePackage();
-	//Top_ofPackageStacks[1]=GeneratePackage();
-	struct Package ** p_stack = &Top_ofPackageStacks[1];
-	PrintPackages();
-	RemoveStack(p_stack);
-	PrintPackages();
-
-
-	struct Shopping * a = GenerateShopping();
-	struct Shopping * b = GenerateShopping();
-	struct Shopping * c = GenerateShopping();
-	struct Shopping * d = GenerateShopping();
-	SimulateGoForShopping(a);
-	SimulateGoForShopping(b);
-	SimulateGoForShopping(c);
-	SimulateGoForShopping(d);
-	PrintShopping();
-	for (EventNumbers;EventNumbers>0;EventNumbers--)
-	{
-		//printf("%d",EventNumbers);
-		PrintShopping();
-		UpdateShoppingQueue();
-	}
-	RemoveAllRobotPackages();
-	CleanPackageStacks();
-	CleanShoppingQueue();
+		
+	SimulationLoop(EventNumbers);
 	return 0;
 }
