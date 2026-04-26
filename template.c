@@ -306,22 +306,26 @@ void SimulationLoop(int EventNumbers)
 	
 	for (int i=0; i<EventNumbers; i++)    
 	{
-		enum EventType event = GenerateEventType();	
-		if (event == 0) {
+		enum EventType event = GenerateEventType();
+		switch (event) {
+		case 0:
 			/* Event 0: sort a RobotPackage */
 			struct RobotPackage *Rpack = GenerateRobotPackage();
 			SimulateManagingRobotPackages(Rpack);
-		}	
-		else if(event ==1) {
+			break;
+			
+		case 1:
 			/* Event 1: classify a Package into its stack*/
 			struct Package *Package = GeneratePackage();
 			SimulateClassifyPackage(Package);
+			break;
 
-		}
-		else if (event == 2){
+		case 2:
 			/* Event 2: new robot joins the shopping queue */
 			struct Shopping *shopping = GenerateShopping();
 			SimulateGoForShopping(shopping);
+			break;
+
 		}
 		/* One time unit passes per event consumed */
 		UpdateShoppingQueue(&shopping_time);
