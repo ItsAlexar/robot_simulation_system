@@ -149,16 +149,18 @@ void PrintPackages()
 }
 
 /* It removes (frees) all packages from a given stack and resets its counter */
-void RemoveStack(struct Package **stack_p) 
+int RemoveStack(struct Package **stack_p) 
 {
 	struct Package * tmp;
-
+	int counter = 0;
 	while (*stack_p != NULL) {
 
 		tmp = *stack_p;
 		*stack_p = (*stack_p)->next;
 		free(tmp);
-	}	
+		counter++;
+	}
+	return counter;
 }
 
 /* It pushes a Package onto its corresponding stack.
@@ -169,8 +171,8 @@ void SimulateClassifyPackage(struct Package * Package)
 
 	/* If stack is at max capacity, it removes all packages */
 	if (CurrentState[index] >= MAX_CAPACITY) {
-		struct Package ** Stack = &Top_ofPackageStacks[index];
-		RemoveStack(Stack);
+		RemoveStack(&Top_ofPackageStacks[index]);
+		CurrentState[index] = 0;
 	}
 
 	Package->next = Top_ofPackageStacks[index]; // in case no package is in the stack, it will be NULL
@@ -184,16 +186,10 @@ void CleanPackageStacks()
 	int total = 0;
 	printf("Cleaning all stacks of packages...\n");
 	for (int i = 0; i < NUMBER_OF_STACK; i++) {
-		struct Package ** ptp = &Top_ofPackageStacks[i];
-		struct Package * tmp;
-		while (*ptp != NULL) {
-			tmp = *ptp;
-			*ptp = (*ptp)->next;
-			free(tmp);
-			total++;
-		}	
-		CurrentState[i] = 0;   // We should do this when MAX_CAPACITY is achieved and RemoveStack is going to be executed
-	}
+		total += RemoveStack(&Top_ofPackageStacks[i]);
+		CurrentState[i] = 0;
+		// We should do this when MAX_CAPACITY is achieved and RemoveStack is going to be executed
+		}
 	printf("	%d packages have been removed.\n", total);
 }
 
