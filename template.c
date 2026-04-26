@@ -258,7 +258,7 @@ void UpdateShoppingQueue (int *shopping_time)
 		if (current_time != -1){
 			*shopping_time = current_time;
 			printf("A robot just START shopping.\n");
-		} 
+		}
 	} 
 	else if (*shopping_time > 0) {
 		(*shopping_time)--;
